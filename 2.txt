@@ -1,0 +1,113 @@
+@echo off
+REM
+set TXUTIL=c:\nms\tx\bin
+set TXCP=c:\nms\tx\cp
+set TXCONFIG=c:\nms\tx\config\standalone\ansi
+set BRD=1
+if not "%1"=="" set BRD=%1
+REM
+REM              TX Series COMMUNICATIONS PROCESSOR BOOT FILE
+REM
+REM
+REM Execute this file to boot/configure a TX Series Communications Processor
+REM
+REM
+REM Get the model number
+%TXUTIL%\cpmodel -b %BRD%
+if errorlevel 3220 goto boot3220
+if errorlevel 3210 goto boot3210
+if errorlevel 3000 goto boot3000
+if errorlevel 2000 goto boot2000
+echo ERROR! Check board number
+goto end
+
+:boot3220
+%TXUTIL%\txreset -b %BRD%
+if errorlevel 1 goto failedload
+set TXTYPE=3220
+goto loadsw
+
+:boot3210
+%TXUTIL%\txreset -b %BRD%
+if errorlevel 1 goto failedload
+set TXTYPE=3210
+goto loadsw
+
+:boot3000
+%TXUTIL%\cplot -c %BRD% -f %TXCP%\cpk3000.lo -k -a -u ss7
+if errorlevel 1 goto failedload
+set TXTYPE=3000
+goto loadsw
+
+:boot2000
+%TXUTIL%\cplot -c %BRD% -f %TXCP%\cpk2000.lo -k -a -u ss7
+if errorlevel 1 goto failedload
+set TXTYPE=2000
+goto loadsw
+
+:failedload
+echo ERROR! Kernel failed to load.  Check IRQ and I/O address settings.
+goto end
+
+:loadsw
+REM
+%TXUTIL%\cplot -c %BRD% -f %TXCP%\diag%TXTYPE%.lot -n diag -p 2 -a
+%TXUTIL%\cplot -c %BRD% -f %TXCONFIG%\TDMcp%BRD%.bin -g tdm
+%TXUTIL%\cplot -c %BRD% -f %TXCP%\debug.lot -n debug -p 3 -a
+%TXUTIL%\cplot -c %BRD% -f %TXCP%\arp.lot -n arp -p 17 -a
+%TXUTIL%\cplot -c %BRD% -f %TXCP%\inf.lot -n inf -p 16 -a
+REM
+REM download the MVIP and T1/E1 manager tasks to enable use
+REM of the MVIP and T1/E1 host APIs; NOTE: if you do not
+REM use either of these APIs, remove the following 2 lines.
+REM
+%TXUTIL%\cplot -c %BRD% -f %TXCP%\mvip.lot -n mvip -p 4 -a
+%TXUTIL%\cplot -c %BRD% -f %TXCP%\t1e1mgr.lot -n t1e1mgr -p 15 -a
+REM
+REM To enable packet tracing in the ISUP or TUP layer, make the following
+REM command active to download the ETP trace collector on the board.
+REM
+rem %TXUTIL%\cplot -c %BRD% -f %TXCP%\etp.lot -n etp -p 14 -a
+REM
+REM Load TXMON
+REM
+%TXUTIL%\cplot -c %BRD% -f %TXCP%\txmon.lot -n txmon -p 9 -a
+REM
+REM Load MTP3 task
+REM
+%TXUTIL%\cplot -c %BRD% -f %TXCP%\mtp.lot -n mtp -p 10 -a -s 12000
+REM
+REM Enable the following downloads for SS7 layers you do use
+REM
+rem %TXUTIL%\cplot -c %BRD% -f %TXCP%\sccp.lot -n sccp -p 11 -a
+rem %TXUTIL%\cplot -c %BRD% -f %TXCP%\isup.lot -n isup -p 12 -s 40960 -a
+rem %TXUTIL%\cplot -c %BRD% -f %TXCP%\tup.lot  -n tup  -p 12 -s 40960 -a
+rem %TXUTIL%\cplot -c %BRD% -f %TXCP%\tcap.lot -n tcap -p 13 -a
+REM
+REM
+REM ISUP only: Enable the download of the ISUP database required for your configuration.
+REM
+rem %TXUTIL%\cplot -c %BRD% -f %TXCP%\itublue.lot -n itublue -p 5 -a
+rem %TXUTIL%\cplot -c %BRD% -f %TXCP%\ituwhite.lot -n ituwhite -p 5 -a
+rem %TXUTIL%\cplot -c %BRD% -f %TXCP%\q767.lot -n q767 -p 5 -a
+rem %TXUTIL%\cplot -c %BRD% -f %TXCP%\ansi88.lot -n ansi88 -p 5 -a
+rem %TXUTIL%\cplot -c %BRD% -f %TXCP%\ansi92.lot -n ansi92 -p 5 -a
+rem %TXUTIL%\cplot -c %BRD% -f %TXCP%\ansi95.lot -n ansi95 -p 5 -a
+REM
+REM Configure SS7 MTP2, MTP3, ISUP, TUP & SCCP - enable these commands
+REM for any SS7 layers you do use
+REM
+REM NOTE: Level 2 configurability is now available.  However,
+REM       level 2 configuration is not strictly necessary.  The defaults
+REM       will work for most installations.
+REM
+%TXUTIL%\mtp2cfg -b %BRD% -f %TXCONFIG%\MTP3cp%BRD%.cfg
+%TXUTIL%\mtp3cfg -b %BRD% -f %TXCONFIG%\MTP3cp%BRD%.cfg
+rem %TXUTIL%\sccpcfg -b %BRD% -f %TXCONFIG%\SCCPcp%BRD%.cfg
+rem %TXUTIL%\isupcfg -b %BRD% -f %TXCONFIG%\ISUPcp%BRD%.cfg
+rem %TXUTIL%\tupcfg  -b %BRD% -f %TXCONFIG%\TUPcp%BRD%.cfg
+rem %TXUTIL%\tcapcfg -b %BRD% -f %TXCONFIG%\TCAPcp%BRD%.cfg
+:end
+set TXUTIL=
+set TXCP=
+set TXCONFIG=
