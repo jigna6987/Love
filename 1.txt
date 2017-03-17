@@ -1,0 +1,12 @@
+prompt> ss7load 1
+CPMODEL V1.0: Copyright 1998, Natural MicroSystems
+Board #1 is a TX2000
+Loading: E.0 TX2000 Kernel (c)1996-1997 Natural MicroSystems, Inc. 2/10/97
+Loading: diag2000 Version C.1.0 12/10/97
+Loading:            
+Loading: inf Version C.4.0 12/10/97
+Loading: mvip Version A.1.0 12/10/97
+Loading: t1e1mgr Version A.1.0 12/10/97
+Loading: mtp Version B.3.0 01/14/98
+mtp2cfg: sample MTP2 configuration application version B.1.0 Jan 14 1998
+mtp3cfg: sample MTP3 configuration application version B.3.0 Jan 14 1998
